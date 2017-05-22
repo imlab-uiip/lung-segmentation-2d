@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
     # Path to csv-file. File should contain X-ray filenames as first column,
     # mask filenames as second column.
-    csv_path = '/path/to/JSRT/new/idx.txt'
+    csv_path = '/path/to/JSRT/idx.txt'
     # Path to the folder with images. Images will be read from path + path_from_csv
     path = csv_path[:csv_path.rfind('/')] + '/'
 
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     plot_model(UNet, 'model.png', show_shapes=True)
 
     ##########################################################################################
-    model_file_format = 'UNET2D.{epoch:03d}.hdf5'
+    model_file_format = 'model.{epoch:03d}.hdf5'
     print model_file_format
     checkpointer = ModelCheckpoint(model_file_format, period=10)
 

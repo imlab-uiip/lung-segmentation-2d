@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     # Path to csv-file. File should contain X-ray filenames as first column,
     # mask filenames as second column.
-    csv_path = '/path/to/JSRT/new/idx.txt'
+    csv_path = '/path/to/JSRT/idx.txt'
     # Path to the folder with images. Images will be read from path + path_from_csv
     path = csv_path[:csv_path.rfind('/')] + '/'
 
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     inp_shape = X[0].shape
 
     # Load model
-    model_name = 'UNET2D.hdf5'
+    model_name = 'trained_model.hdf5'
     UNet = load_model(model_name)
 
     # For inference standard keras ImageGenerator is used.
@@ -81,9 +81,11 @@ if __name__ == '__main__':
         pred = UNet.predict(xx)[..., 0].reshape(inp_shape[:2])
         mask = yy[..., 0].reshape(inp_shape[:2])
 
+        # Binarize masks
         gt = mask > 0.5
         pr = pred > 0.5
 
+        # Remove regions smaller than 2% of the image
         pr = remove_small_regions(pr, 0.02 * np.prod(im_shape))
 
         io.imsave('results/{}'.format(df.iloc[i].path), masked(img, gt, pr, 1))
