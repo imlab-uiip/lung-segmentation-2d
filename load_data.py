@@ -9,6 +9,8 @@ Data was preprocessed in the following ways:
 Resulting shape should be (n_samples, img_width, img_height, 1).
 
 It may be more convenient to store preprocessed data for faster loading.
+
+Dataframe should contain paths to images and masks as two columns (relative to `path`).
 """
 
 def loadDataJSRT(df, path, im_shape):
@@ -28,13 +30,13 @@ def loadDataJSRT(df, path, im_shape):
     X -= X.mean()
     X /= X.std()
 
-
     print '### Dataset loaded'
     print '\t{}'.format(path)
     print '\t{}\t{}'.format(X.shape, y.shape)
     print '\tX:{:.1f}-{:.1f}\ty:{:.1f}-{:.1f}\n'.format(X.min(), X.max(), y.min(), y.max())
     print '\tX.mean = {}, X.std = {}'.format(X.mean(), X.std())
     return X, y
+
 
 def loadDataMontgomery(df, path, im_shape):
     X, y = [], []
@@ -56,7 +58,6 @@ def loadDataMontgomery(df, path, im_shape):
     y = np.array(y)
     X -= X.mean()
     X /= X.std()
-
 
     print '### Dataset loaded'
     print '\t{}'.format(path)

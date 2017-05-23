@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
     # Path to csv-file. File should contain X-ray filenames as first column,
     # mask filenames as second column.
-    csv_path = '/path/to/JSRT/idx.txt'
+    csv_path = '/path/to/JSRT/idx.csv'
     # Path to the folder with images. Images will be read from path + path_from_csv
     path = csv_path[:csv_path.rfind('/')] + '/'
 
