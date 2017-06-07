@@ -1,10 +1,33 @@
-from load_data import loadDataJSRT, loadDataMontgomery
-
 import numpy as np
 import pandas as pd
 from keras.models import load_model
 from keras.preprocessing.image import ImageDataGenerator
-from skimage import morphology, color, io, exposure
+from skimage import morphology, io, color, exposure, img_as_float, transform
+from matplotlib import pyplot as plt
+
+def loadDataGeneral(df, path, im_shape):
+    X, y = [], []
+    for i, item in df.iterrows():
+        img = img_as_float(io.imread(path + item[0]))
+        mask = io.imread(path + item[1])
+        img = transform.resize(img, im_shape)
+        img = exposure.equalize_hist(img)
+        img = np.expand_dims(img, -1)
+        mask = transform.resize(mask, im_shape)
+        mask = np.expand_dims(mask, -1)
+        X.append(img)
+        y.append(mask)
+    X = np.array(X)
+    y = np.array(y)
+    X -= X.mean()
+    X /= X.std()
+
+    print '### Dataset loaded'
+    print '\t{}'.format(path)
+    print '\t{}\t{}'.format(X.shape, y.shape)
+    print '\tX:{:.1f}-{:.1f}\ty:{:.1f}-{:.1f}\n'.format(X.min(), X.max(), y.min(), y.max())
+    print '\tX.mean = {}, X.std = {}'.format(X.mean(), X.std())
+    return X, y
 
 def IoU(y_true, y_pred):
     """Returns Intersection over Union score for ground truth and predicted masks."""
@@ -52,21 +75,21 @@ if __name__ == '__main__':
 
     # Path to csv-file. File should contain X-ray filenames as first column,
     # mask filenames as second column.
-    csv_path = '/path/to/JSRT/idx.csv'
+    csv_path = 'idx.csv'
     # Path to the folder with images. Images will be read from path + path_from_csv
-    path = csv_path[:csv_path.rfind('/')] + '/'
+    path = 'Data/'
 
     df = pd.read_csv(csv_path)
 
     # Load test data
     im_shape = (256, 256)
-    X, y = loadDataJSRT(df, path, im_shape)
+    X, y = loadDataGeneral(df, path, im_shape)
 
     n_test = X.shape[0]
     inp_shape = X[0].shape
 
     # Load model
-    model_name = 'trained_model.hdf5'
+    model_name = '../UNET2D.hdf5'
     UNet = load_model(model_name)
 
     # For inference standard keras ImageGenerator is used.
@@ -75,24 +98,47 @@ if __name__ == '__main__':
     ious = np.zeros(n_test)
     dices = np.zeros(n_test)
 
+    gts, prs = [], []
     i = 0
+    plt.figure(figsize=(10, 10))
     for xx, yy in test_gen.flow(X, y, batch_size=1):
         img = exposure.rescale_intensity(np.squeeze(xx), out_range=(0,1))
         pred = UNet.predict(xx)[..., 0].reshape(inp_shape[:2])
         mask = yy[..., 0].reshape(inp_shape[:2])
 
-        # Binarize masks
         gt = mask > 0.5
         pr = pred > 0.5
 
-        # Remove regions smaller than 2% of the image
         pr = remove_small_regions(pr, 0.02 * np.prod(im_shape))
 
-        io.imsave('results/{}'.format(df.iloc[i][0]), masked(img, gt, pr, 1))
+        #io.imsave('{}'.format(df.iloc[i].path), masked(img, gt, pr, 1))
 
+        gts.append(gt)
+        prs.append(pr)
         ious[i] = IoU(gt, pr)
         dices[i] = Dice(gt, pr)
         print df.iloc[i][0], ious[i], dices[i]
+
+        if i < 4:
+            plt.subplot(4, 4, 4*i+1)
+            plt.title('Processed ' + df.iloc[i][0])
+            plt.axis('off')
+            plt.imshow(img, cmap='gray')
+
+            plt.subplot(4, 4, 4 * i + 2)
+            plt.title('IoU = {:.2f}'.format(ious[i]))
+            plt.axis('off')
+            plt.imshow(masked(img, gt, pr, 1))
+
+            plt.subplot(4, 4, 4*i+3)
+            plt.title('Prediction')
+            plt.axis('off')
+            plt.imshow(pred, cmap='jet')
+
+            plt.subplot(4, 4, 4*i+4)
+            plt.title('Difference')
+            plt.axis('off')
+            plt.imshow(np.dstack((pr.astype(np.int8), gt.astype(np.int8), pr.astype(np.int8))))
 
         i += 1
         if i == n_test:
@@ -100,4 +146,6 @@ if __name__ == '__main__':
 
     print 'Mean IoU:', ious.mean()
     print 'Mean Dice:', dices.mean()
-
+    plt.tight_layout()
+    plt.savefig('results.png')
+    plt.show()
