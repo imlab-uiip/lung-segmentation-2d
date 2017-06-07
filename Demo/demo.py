@@ -89,10 +89,10 @@ if __name__ == '__main__':
     inp_shape = X[0].shape
 
     # Load model
-    model_name = '../UNET2D.hdf5'
+    model_name = '../trained_model.hdf5'
     UNet = load_model(model_name)
 
-    # For inference standard keras ImageGenerator is used.
+    # For inference standard keras ImageGenerator can be used.
     test_gen = ImageDataGenerator(rescale=1.)
 
     ious = np.zeros(n_test)
@@ -126,7 +126,7 @@ if __name__ == '__main__':
             plt.imshow(img, cmap='gray')
 
             plt.subplot(4, 4, 4 * i + 2)
-            plt.title('IoU = {:.2f}'.format(ious[i]))
+            plt.title('IoU = {:.4f}'.format(ious[i]))
             plt.axis('off')
             plt.imshow(masked(img, gt, pr, 1))
 
