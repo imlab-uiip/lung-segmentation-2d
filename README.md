@@ -14,7 +14,7 @@ To use this implementation one needs to load and preprocess data (see `load_data
 `trained_model.hdf5` contains model trained on both data sets mentioned below.
 
 ## Segmentation
-Scores achieved on [Montgomery](https://openi.nlm.nih.gov/faq.php#faq-tb-coll) and [JSRT](http://www.jsrt.or.jp/jsrt-db/eng.php)(With [these masks](http://www.isi.uu.nl/Research/Databases/SCR/). See `preprocess_JSRT.py`.) (Measured using 5-fold cross-validation):
+Scores achieved on [Montgomery](https://openi.nlm.nih.gov/faq.php#faq-tb-coll) and [JSRT](http://db.jsrt.or.jp/eng.php)(With [these masks](http://www.isi.uu.nl/Research/Databases/SCR/). See `preprocess_JSRT.py`.) (Measured using 5-fold cross-validation):
 
 |      |  JSRT | Montgomery |
 |:----:|:-----:|:----------:|
